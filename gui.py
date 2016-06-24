@@ -107,11 +107,11 @@ class Subfixer(object):
 
         view = gtk.TreeView(model=self.model)
         # for each column
-        for i in range(len(columns)):
+        for i, column in enumerate(columns):
             # cellrenderer to render the text
             cell = gtk.CellRendererText()
             # the column is created
-            col = gtk.TreeViewColumn(columns[i], cell, text=i)
+            col = gtk.TreeViewColumn(column, cell, text=i)
             # and it is appended to the treeview
             view.append_column(col)
 
@@ -157,7 +157,8 @@ class Subfixer(object):
     def destroy_alert(self, window):
         self.alert_window.destroy()
 
-    def quit(self, event_source):
+    @staticmethod
+    def quit(event_source):
         gtk.main_quit()
 
     def show_alert(self, alert_text):
@@ -223,7 +224,7 @@ class Subfixer(object):
         # add rows
         # print from_path, to_path, len(self.model)
         if to_path >= len(self.model):
-            for i in range(to_path - len(self.model) + 1):
+            for _ in range(to_path - len(self.model) + 1):
                 srt_index += 1
                 self.model.append([srt_index, srt_start, srt_end, None, None])
 
@@ -238,22 +239,22 @@ class Subfixer(object):
         # shift rows
         # print from_path, pathlist[0][0]
         while from_path >= pathlist[0][0]:
-            from_iter = self.model.get_iter(from_path)
-            srt_start = self.model.get_value(from_iter, 1)
-            srt_end = self.model.get_value(from_iter, 2)
-            srt_text = self.model.get_value(from_iter, 3)
-            to_iter = self.model.get_iter(to_path)
-            self.model.set(to_iter, 1, srt_start, 2, srt_end, 3, srt_text)
+            from_iter = model.get_iter(from_path)
+            srt_start = model.get_value(from_iter, 1)
+            srt_end = model.get_value(from_iter, 2)
+            srt_text = model.get_value(from_iter, 3)
+            to_iter = model.get_iter(to_path)
+            model.set(to_iter, 1, srt_start, 2, srt_end, 3, srt_text)
             from_path -= 1
             to_path -= 1
 
         # clear selected rows
-        from_iter = self.model.get_iter(pathlist[0])
-        srt_start = self.model.get_value(from_iter, 1)
-        srt_end = self.model.get_value(from_iter, 2)
+        from_iter = model.get_iter(pathlist[0])
+        srt_start = model.get_value(from_iter, 1)
+        srt_end = model.get_value(from_iter, 2)
         for path in pathlist:
-            srt_iter = self.model.get_iter(path)
-            self.model.set(srt_iter, 1, srt_start, 2, srt_end, 3, '')
+            srt_iter = model.get_iter(path)
+            model.set(srt_iter, 1, srt_start, 2, srt_end, 3, '')
 
         self.view.get_selection().unselect_all()
         self.good_file.changed = True
@@ -266,27 +267,26 @@ class Subfixer(object):
         # get lines to merge
         srt_list = []
         for path in pathlist:
-            srt_iter = self.model.get_iter(path)
-            srt_list.append(self.model.get_value(srt_iter, 4))
+            srt_iter = model.get_iter(path)
+            srt_list.append(model.get_value(srt_iter, 4))
         srt_string = '\n'.join(srt_list)
 
         # update first selected row
-        srt_iter = self.model.get_iter(pathlist[0])
-        self.model.set_value(srt_iter, 4, srt_string)
+        srt_iter = model.get_iter(pathlist[0])
+        model.set_value(srt_iter, 4, srt_string)
 
         # move other rows
-        srt_iter = self.model.iter_next(srt_iter)
+        srt_iter = model.iter_next(srt_iter)
         while srt_iter is not None:
-            copy_path = int(self.model.get_string_from_iter(srt_iter)) + shift_len - 1
+            copy_path = int(model.get_string_from_iter(srt_iter)) + shift_len - 1
             try:
-                copy_iter = self.model.get_iter(copy_path)
-                value = self.model.get_value(copy_iter, 4)
-                self.model.set_value(srt_iter, 4, value)
+                copy_iter = model.get_iter(copy_path)
+                value = model.get_value(copy_iter, 4)
+                model.set_value(srt_iter, 4, value)
             except ValueError:
                 # copy_path is bigger than max path
-                self.model.set_value(srt_iter, 4, None)
-                pass
-            srt_iter = self.model.iter_next(srt_iter)
+                model.set_value(srt_iter, 4, None)
+            srt_iter = model.iter_next(srt_iter)
 
         self.view.get_selection().unselect_all()
         self.bad_file.changed = True
@@ -300,18 +300,18 @@ class Subfixer(object):
         # shift rows
         # print from_path, pathlist[0][0]
         while from_path >= pathlist[0][0]:
-            from_iter = self.model.get_iter(from_path)
-            srt_text = self.model.get_value(from_iter, 4)
-            to_iter = self.model.get_iter(to_path)
-            self.model.set(to_iter, 4, srt_text)
+            from_iter = model.get_iter(from_path)
+            srt_text = model.get_value(from_iter, 4)
+            to_iter = model.get_iter(to_path)
+            model.set(to_iter, 4, srt_text)
             from_path -= 1
             to_path -= 1
 
         # clear selected rows
         for path in pathlist:
-            srt_iter = self.model.get_iter(path)
-            srt_text = self.model.get_value(srt_iter, 3)
-            self.model.set(srt_iter, 4, srt_text)
+            srt_iter = model.get_iter(path)
+            srt_text = model.get_value(srt_iter, 3)
+            model.set(srt_iter, 4, srt_text)
 
         self.view.get_selection().unselect_all()
         self.bad_file.changed = True
