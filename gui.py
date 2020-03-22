@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 import os
 import gtk
@@ -38,7 +38,7 @@ class SrtFile(object):
         # create temp backup of file
         backup = self._basename + "-backup." + self._extension
         shutil.copyfile(self.filename, backup)
-        print "Created backup at {}".format(backup)
+        print("Created backup at {}".format(backup))
 
         # print 'srt[100]: %s' % self.srt_string[:100]
         subs = pysrt.from_string(srt_string)
@@ -66,14 +66,14 @@ class Subfixer(object):
         if self.is_good_selected:
             self.load_srt(self.good_file)
         else:
-            print message
+            print(message)
         self.good_label = None
 
         self.is_bad_selected, message = self.bad_file.set_filename(bad_file)
         if self.is_bad_selected:
             self.load_srt(self.bad_file)
         else:
-            print message
+            print(message)
         self.bad_label = None
 
     def _add_files_widgets(self, hbox, is_good=True):
@@ -321,8 +321,7 @@ class Subfixer(object):
         # print len(srt_list)
 
         # Add rows to the model
-        for i in xrange(len(srt_list)):
-            sub = srt_list[i]
+        for i, sub in enumerate(srt_list):
             if srt_file.is_good:
                 text_column = 3
                 good_text = sub.text
@@ -371,7 +370,7 @@ class Subfixer(object):
                 self.is_bad_selected = True
 
             label.set_text("File: %s" % srt_file.filename)
-            print "FILE SELECTED"
+            print("FILE SELECTED")
         else:
             chooser_dialog.destroy()
 
