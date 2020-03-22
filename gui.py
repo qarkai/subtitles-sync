@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
-import os
-import gtk
-import shutil  # for copying files
 import argparse
+import os
+import shutil  # for copying files
 
 import pysrt
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
 
 
 class SrtFile(object):
@@ -56,7 +58,7 @@ class Subfixer(object):
         self.extension = None
         self.srt_string = None
 
-        self.model = gtk.ListStore(int, str, str, str, str)
+        self.model = Gtk.ListStore(int, str, str, str, str)
         self.view = None
 
         self.good_file = SrtFile(True)
@@ -77,74 +79,74 @@ class Subfixer(object):
         self.bad_label = None
 
     def _add_files_widgets(self, hbox, is_good=True):
-        vbox = gtk.VBox()
+        vbox = Gtk.VBox()
 
-        choose = gtk.Button("Choose file")
+        choose = Gtk.Button.new_with_label("Choose file")
         choose.is_good = is_good
         choose.connect("clicked", self.choose_clicked)
-        vbox.pack_start(choose)
+        vbox.pack_start(choose, True, True, 0)
 
         if is_good:
-            self.good_label = gtk.Label("File: %s" % self.good_file.filename)
-            vbox.pack_start(self.good_label)
+            self.good_label = Gtk.Label.new("File: %s" % self.good_file.filename)
+            vbox.pack_start(self.good_label, True, True, 0)
         else:
-            self.bad_label = gtk.Label("File: %s" % self.bad_file.filename)
-            vbox.pack_start(self.bad_label)
+            self.bad_label = Gtk.Label.new("File: %s" % self.bad_file.filename)
+            vbox.pack_start(self.bad_label, True, True, 0)
 
-        hbox.pack_start(vbox)
+        hbox.pack_start(vbox, True, True, 0)
 
     def create_main_window(self):
         columns = ['index', 'start', 'end', 'good', 'bad']
 
-        window = gtk.Window()
-        vbox = gtk.VBox()
+        window = Gtk.Window()
+        vbox = Gtk.VBox()
 
-        hbox = gtk.HBox()
-        vbox.pack_start(hbox)
+        hbox = Gtk.HBox()
+        vbox.pack_start(hbox, True, True, 0)
 
         self._add_files_widgets(hbox)
         self._add_files_widgets(hbox, False)
 
-        view = gtk.TreeView(model=self.model)
+        view = Gtk.TreeView(model=self.model)
         # for each column
         for i, column in enumerate(columns):
             # cellrenderer to render the text
-            cell = gtk.CellRendererText()
+            cell = Gtk.CellRendererText()
             # the column is created
-            col = gtk.TreeViewColumn(column, cell, text=i)
+            col = Gtk.TreeViewColumn(column, cell, text=i)
             # and it is appended to the treeview
             view.append_column(col)
 
-        view.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+        view.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         view.set_size_request(1000, 600)
 
-        scroll_tree = gtk.ScrolledWindow()
-        scroll_tree.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        scroll_tree = Gtk.ScrolledWindow()
+        scroll_tree.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroll_tree.add(view)
 
         self.view = view
 
-        vbox.pack_start(scroll_tree)
+        vbox.pack_start(scroll_tree, True, True, 0)
 
-        hbox = gtk.HBox()
+        hbox = Gtk.HBox()
 
-        left_copy_btn = gtk.Button("<--")
+        left_copy_btn = Gtk.Button.new_with_label("<--")
         left_copy_btn.connect("clicked", self.left_copy_clicked)
-        hbox.pack_start(left_copy_btn)
+        hbox.pack_start(left_copy_btn, True, True, 0)
 
-        merge_btn = gtk.Button("Merge")
+        merge_btn = Gtk.Button.new_with_label("Merge")
         merge_btn.connect("clicked", self.merge_clicked)
-        hbox.pack_start(merge_btn)
+        hbox.pack_start(merge_btn, True, True, 0)
 
-        right_copy_btn = gtk.Button("-->")
+        right_copy_btn = Gtk.Button.new_with_label("-->")
         right_copy_btn.connect("clicked", self.right_copy_clicked)
-        hbox.pack_start(right_copy_btn)
+        hbox.pack_start(right_copy_btn, True, True, 0)
 
-        vbox.pack_start(hbox)
+        vbox.pack_start(hbox, True, True, 0)
 
-        save_btn = gtk.Button("Save")
+        save_btn = Gtk.Button.new_with_label("Save")
         save_btn.connect("clicked", self.save_clicked)
-        vbox.pack_start(save_btn)
+        vbox.pack_start(save_btn, True, True, 0)
 
         window.set_size_request(1200, 800)
         window.set_title("SubsFixer")
@@ -159,12 +161,12 @@ class Subfixer(object):
 
     @staticmethod
     def quit(event_source):
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def show_alert(self, alert_text):
-        self.alert_window = gtk.Dialog("Message", None, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
-        self.alert_window.vbox.add(gtk.Label(alert_text))
-        btn = gtk.Button("OK")
+        self.alert_window = Gtk.Dialog("Message", None, Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT)
+        self.alert_window.vbox.add(Gtk.Label(alert_text))
+        btn = Gtk.Button("OK")
         self.alert_window.vbox.add(btn)
         btn.connect("clicked", self.destroy_alert)
         self.alert_window.set_size_request(200, 100)
@@ -347,9 +349,9 @@ class Subfixer(object):
             srt_file = self.bad_file
         label.set_text("File: None")
 
-        chooser_dialog = gtk.FileChooserDialog("Open file", btn.get_toplevel(), gtk.FILE_CHOOSER_ACTION_OPEN)
-        chooser_dialog.add_button(gtk.STOCK_CANCEL, 0)
-        chooser_dialog.add_button(gtk.STOCK_OPEN, 1)
+        chooser_dialog = Gtk.FileChooserDialog("Open file", btn.get_toplevel(), Gtk.FILE_CHOOSER_ACTION_OPEN)
+        chooser_dialog.add_button(Gtk.STOCK_CANCEL, 0)
+        chooser_dialog.add_button(Gtk.STOCK_OPEN, 1)
         chooser_dialog.set_default_response(1)
 
         if chooser_dialog.run() == 1:
@@ -383,4 +385,4 @@ if __name__ == "__main__":
 
     subfixer = Subfixer(good_file=args.good, bad_file=args.bad)
     subfixer.create_main_window()
-    gtk.main()
+    Gtk.main()
